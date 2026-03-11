@@ -1,0 +1,19 @@
+﻿@if(Context.User.Identity.IsAuthenticated == false)
+{
+    //efecto optico de login 
+    <li>
+        <a class="nav-link" asp-area="" asp-controller="Empleados" asp-action="PerfilEmpleado">Login</a>
+    </li>
+}
+else
+{
+    <li>
+        <a class="nav-link" asp-area="" asp-controller="Empleados" asp-action="PerfilEmpleados">Mi Perfil</a>
+    </li>
+     <li>
+        <a class="nav-link" asp-area="" asp-controller="Managed" asp-action="Logout">Logout
+            <span class="badge badge-secondary">@Context.User.Identity.Name</span>
+        </a>
+    </li>
+    
+}
