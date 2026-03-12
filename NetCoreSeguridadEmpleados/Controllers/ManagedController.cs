@@ -22,7 +22,7 @@ namespace NetCoreSeguridadEmpleados.Controllers
         public async Task<IActionResult> Login(string username, string password)
         {
             int idEmpleado = int.Parse(password);
-            Empleado empleado = await this.repo.LogInEmpleadoAsync(username, idEmpleado);
+            Empleado empleado = await this.repo.LogInEmpleadoAsync(idEmpleado, username);
             if (empleado != null)
             {
 
@@ -48,7 +48,7 @@ namespace NetCoreSeguridadEmpleados.Controllers
                 ClaimsPrincipal userPrincipal = new ClaimsPrincipal(identity);
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, userPrincipal);
 
-                return RedirectToAction("PerfilEmpleado", "Empleados");
+                return RedirectToAction("Index", "Empleados");
 
 
             }
@@ -63,19 +63,26 @@ namespace NetCoreSeguridadEmpleados.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            string controller = TempData["controller"].ToString();
-            string action = TempData["action"].ToString();
-            if (TempData["accion"] != null)
+            if (TempData.ContainsKey("controller") && TempData.ContainsKey("action"))
             {
-                string id = TempData["id"].ToString();
-                return RedirectToAction(action, controller, new { id = id });
-            }
-            else
-            {
-                return RedirectToAction(action, controller);
+                string controller = TempData["controller"]?.ToString();
+                string action = TempData["action"]?.ToString();
+
+                if (!string.IsNullOrEmpty(controller) && !string.IsNullOrEmpty(action))
+                {
+                    if (TempData.ContainsKey("id"))
+                    {
+                        string id = TempData["id"]?.ToString();
+                        return RedirectToAction(action, controller, new { id = id });
+                    }
+                    else
+                    {
+                        return RedirectToAction(action, controller);
+                    }
+                }
             }
 
-
+            return RedirectToAction("Index", "Home");
         }
         public IActionResult ErrorAcceso()
         {

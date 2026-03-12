@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NetCoreSeguridadEmpleados.Filters;
 using NetCoreSeguridadEmpleados.Models;
 using System.Security.Claims;
@@ -59,6 +60,15 @@ namespace NetCoreSeguridadEmpleados.Controllers
         public IActionResult ZonaNoble()
         {
             return View();
+        }
+
+        [AuthorizeEmpleados]
+        [Authorize(Policy = "SubordinatesPolicy")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await repo.DeleteEmpleadoAsync(id);
+            TempData["Mensaje"] = "Empleado eliminado correctamente";
+            return RedirectToAction("Index");
         }
 
     }

@@ -17,9 +17,7 @@ namespace NetCoreSeguridadEmpleados.Models
         public int Salario { get; set; }
         [Column("DEPT_NO")]
         public int IdDepartamento { get; set; }
-
-
-
-
+        [Column("DIR")]
+        public int? IdDirector { get; set; }
     }
 }

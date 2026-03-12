@@ -1,21 +1,46 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using NetCoreSeguridadEmpleados.Data;
 using NetCoreSeguridadEmpleados.Policies;
+using NetCoreSeguridadEmpleados.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
+string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<HospitalContext>(options =>
+    options.UseSqlServer(connectionString));
 
-//las politicas se agregan con Authorization
+builder.Services.AddScoped<RepositoryHospital>();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+}).AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, config =>
+{
+    config.LoginPath = "/Managed/Login";
+    config.LogoutPath = "/Managed/Logout";
+    config.AccessDeniedPath = "/Managed/ErrorAcceso";
+});
+
+builder.Services.AddSingleton<IAuthorizationHandler, OverSalarioRequirement>();
+builder.Services.AddSingleton<IAuthorizationHandler, HasSubordinatesRequirement>();
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("EmpleadoPolicy", policy =>
     {
         policy.RequireRole("PRESIDENTE", "DIRECTOR", "ANALISTA");
-
-
     });
     options.AddPolicy("AdminPolicy", policy =>
     {
@@ -25,35 +50,15 @@ builder.Services.AddAuthorization(options =>
     {
         policy.AddRequirements(new OverSalarioRequirement());
     });
+    options.AddPolicy("SubordinatesPolicy", policy =>
+    {
+        policy.AddRequirements(new HasSubordinatesRequirement());
+    });
 });
 
-
-string connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<HospitalContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.Services.AddControllersWithViews().AddSessionStateTempDataProvider();
 
 var app = builder.Build();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession();
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
-}).AddCookie(
-    CookieAuthenticationDefaults.AuthenticationScheme, config =>
-    {
-
-        config.AccessDeniedPath = "/Managed/ErrorAcceso";
-
-    }
-    );
-builder.Services.AddControllersWithViews(options =>
-{
-    options.EnableEndpointRouting = false;
-}).AddSessionStateTempDataProvider();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -64,25 +69,17 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
-
-app.UseAuthorization();
-app.UseAuthentication();
 app.UseSession();
-
-app.MapStaticAssets();
-
-app.UseMvc(routes =>
-{
-    routes.MapRoute(
-        name: "default",
-        template: "{controller=Home}/{action=Index}/{id?}");
-});
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapStaticAssets();
 
 
 app.Run();

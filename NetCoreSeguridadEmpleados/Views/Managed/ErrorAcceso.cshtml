@@ -1,2 +1,14 @@
-﻿<h1>No tienes permisos para estar en esta zona</h1>
-<img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Empleado" width="150" height="150" />
+﻿@{
+    ViewData["Title"] = "Acceso Denegado";
+}
+
+<div class="text-center">
+    <h1 class="text-danger">⛔ Acceso Denegado</h1>
+    <p class="lead">No tienes permisos para realizar esta acción</p>
+    <p>Solo los empleados con subordinados (jefes/directores) pueden eliminar empleados.</p>
+    <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" alt="Empleado" width="150" height="150" />
+    <div class="mt-4">
+        <a asp-controller="Empleados" asp-action="Index" class="btn btn-primary">Volver a Empleados</a>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Ir a Inicio</a>
+    </div>
+</div>

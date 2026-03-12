@@ -10,47 +10,42 @@ namespace NetCoreSeguridadEmpleados.Filters
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             var user = context.HttpContext.User;
-            //necesitamos el action y el controller de donde 
-            //el usuario ha pulsado 
-            //para ello, tenemos RouteValues que contiene 
-            //la informacion
-
-            //RouteData["controller"] y RouteData["action"]
-            string controller = context.RouteData.Values["controller"].ToString();
-            string action = context.RouteData.Values["action"].ToString();
-            var ruta = context.RouteData.Values["id"];
-
-            ITempDataProvider provider = context.HttpContext.RequestServices.GetService<ITempDataProvider>();
-            //esta clase contiene el TEMPDATA de nuestra app
-            var tempData = provider.LoadTempData(context.HttpContext);
-            //almacenamos la informacion
-            tempData["controller"] = controller;
-            tempData["action"] = action;
-            //debemos preguntar por el id 
-            if (ruta != null)
-            {
-                tempData["id"] = ruta.ToString();
-            }
-            else
-            {
-                //eliminamos la id por si acaso ya existia en el tempdata
-                tempData.Remove("id");
-
-            }
-            //Reasignamos el tampdata para nuestra app
-            provider.SaveTempData(context.HttpContext, tempData);
-
-
-
-
-
 
             if (user.Identity == null || !user.Identity.IsAuthenticated)
             {
+                // Guardar información de ruta solo si el usuario no está autenticado
+                try
+                {
+                    string controller = context.RouteData.Values["controller"]?.ToString();
+                    string action = context.RouteData.Values["action"]?.ToString();
+                    var ruta = context.RouteData.Values["id"];
+
+                    ITempDataProvider provider = context.HttpContext.RequestServices.GetService<ITempDataProvider>();
+                    if (provider != null)
+                    {
+                        var tempData = provider.LoadTempData(context.HttpContext);
+                        tempData["controller"] = controller;
+                        tempData["action"] = action;
+
+                        if (ruta != null)
+                        {
+                            tempData["id"] = ruta.ToString();
+                        }
+                        else
+                        {
+                            tempData.Remove("id");
+                        }
+
+                        provider.SaveTempData(context.HttpContext, tempData);
+                    }
+                }
+                catch
+                {
+                    // Si hay algún error con TempData, continuar con la redirección
+                }
+
                 context.Result = GetRoute("Managed", "Login");
             }
-
-
         }
         //en elgun momento tendremos mas direcciones uqe solo 
         //a login por lo que creamos un metodo para seleccionar 

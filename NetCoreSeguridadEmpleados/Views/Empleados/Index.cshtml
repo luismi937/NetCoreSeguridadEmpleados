@@ -1,13 +1,28 @@
 ﻿@model IEnumerable<NetCoreSeguridadEmpleados.Models.Empleado>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Listado de Empleados";
 }
 
-<h1>Index</h1>
+<h1>Listado de Empleados</h1>
+
+@if (TempData["Mensaje"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Mensaje"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (Context.User.Identity.IsAuthenticated)
+{
+    <div class="alert alert-info">
+        <strong>ℹ️ Nota:</strong> Solo los empleados con subordinados (jefes/directores) pueden eliminar empleados.
+    </div>
+}
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Crear Nuevo</a>
 </p>
 <table class="table">
     <thead>
@@ -43,7 +58,13 @@
                 @Html.DisplayFor(modelItem => item.IdDepartamento)
             </td>
             <td>
-                <a asp-action="Details" asp-route-id="@item.IdEmpleado">Details</a> |
+                <a asp-action="Details" asp-route-id="@item.IdEmpleado" class="btn btn-sm btn-info">Details</a>
+                @if (Context.User.Identity.IsAuthenticated)
+                {
+                    <a asp-action="Delete" asp-route-id="@item.IdEmpleado" 
+                       class="btn btn-sm btn-danger"
+                       onclick="return confirm('⚠️ ¿Está seguro de eliminar al empleado @item.Apellido?\n\nNota: Solo puedes eliminar si tienes subordinados.');">Delete</a>
+                }
             </td>
         </tr>
 }
