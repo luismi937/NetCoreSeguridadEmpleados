@@ -6,9 +6,31 @@
 
 <h1>Compis</h1>
 
+{
+    <p>
+        <a asp-action="EditAll">Editar Todos</a>
+    </p>
+}
+)
+
+
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+@if (Context.User.IsInRole("PRESIDENTE") || Context.User.IsInRole("DIRECTOR"))
+{
+    <form method="post" action="OtroMetodo">
+    <label for="incremento">Incremento Salarial:</label>
+    <input type="number" id="incremento" name="incremento">
+        <button type="submit" class="btn btn-primary">Aplicar Incremento</button>
+</form>
+    
+}
+
+
+
+
+
 <table class="table table-warning">
     <thead>
         <tr>

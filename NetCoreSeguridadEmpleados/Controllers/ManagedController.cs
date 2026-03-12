@@ -25,6 +25,7 @@ namespace NetCoreSeguridadEmpleados.Controllers
             Empleado empleado = await this.repo.LogInEmpleadoAsync(username, idEmpleado);
             if (empleado != null)
             {
+
                 ClaimsIdentity identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name,
                     ClaimTypes.Role);
                 Claim claimName = new Claim(ClaimTypes.Name, username);
@@ -33,6 +34,12 @@ namespace NetCoreSeguridadEmpleados.Controllers
                 identity.AddClaim(claimId);
                 Claim claimRole = new Claim(ClaimTypes.Role, empleado.Oficio);
                 identity.AddClaim(claimRole);
+                if (empleado.IdEmpleado == 7499)
+                {
+                    Claim claimAdmin = new Claim("Admin", "Soy el amo de la empresa");
+                    identity.AddClaim(claimAdmin);
+                }
+                ;
                 Claim claimSalario = new Claim("Salario", empleado.Salario.ToString());
                 identity.AddClaim(claimSalario);
                 Claim claimDept = new Claim("Departamento", empleado.IdDepartamento.ToString());
@@ -55,11 +62,26 @@ namespace NetCoreSeguridadEmpleados.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login");
+
+            string controller = TempData["controller"].ToString();
+            string action = TempData["action"].ToString();
+            if (TempData["accion"] != null)
+            {
+                string id = TempData["id"].ToString();
+                return RedirectToAction(action, controller, new { id = id });
+            }
+            else
+            {
+                return RedirectToAction(action, controller);
+            }
+
+
         }
         public IActionResult ErrorAcceso()
         {
+
             return View();
         }
+
     }
 }
